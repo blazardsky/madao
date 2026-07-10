@@ -70,3 +70,7 @@ The CI workflow runs lint, type‑checking and the build on every push.
 ## MADAO??
 
 Like Hasegawa ([Gintama](https://gintama.fandom.com/wiki/Taizou_Hasegawa)), we are bound to become "totally hopeless old guy"s as AI will replace us. Let's make it happen faster
+
+## ROADMAP
+
+- [] Next update: handle i18n better
