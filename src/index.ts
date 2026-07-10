@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import type { AstroIntegration, IntegrationResolvedRoute } from "astro";
 import TurndownService from "turndown";
 import {
 	buildLlmsTxt,
@@ -13,8 +14,6 @@ import {
 	pathnameToHtmlCandidates,
 	pathnameToMdRelative,
 } from "./utils.js";
-
-import type { AstroIntegration, IntegrationResolvedRoute } from "astro";
 
 const turndown = new TurndownService();
 
