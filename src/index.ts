@@ -10,7 +10,6 @@ import {
 	extractTitle,
 	htmlPathToMdRelative,
 	htmlPathToPathname,
-	is404Entrypoint,
 	is404Pathname,
 	mdRelativeToUrlPath,
 	pathnameToHtmlCandidates,
@@ -79,20 +78,12 @@ export default function madao(options?: string | MadaoOptions): AstroIntegration
 				const pageRoutes = resolvedRoutes.filter((r) => r.type === "page" || r.type === "fallback");
 
 				for (const route of pageRoutes) {
-					const distURLs = assets.get(route.pattern);
-					if (!distURLs?.length) {
+					if (is404Pathname(route.pattern)) {
 						continue;
 					}
 
-					if (is404Entrypoint(route.entrypoint)) {
-						for (const distURL of distURLs) {
-							const htmlRelative = path
-								.relative(outDir, fileURLToPath(distURL))
-								.replace(/\\/g, "/");
-							if (htmlRelative.endsWith(".html")) {
-								processedHtml.add(htmlRelative);
-							}
-						}
+					const distURLs = assets.get(route.pattern);
+					if (!distURLs?.length) {
 						continue;
 					}
 

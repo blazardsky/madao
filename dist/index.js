@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import TurndownService from "turndown";
-import { buildLlmsTxt, extractDescription, extractMainContent, extractTitle, htmlPathToMdRelative, htmlPathToPathname, is404Entrypoint, is404Pathname, mdRelativeToUrlPath, pathnameToHtmlCandidates, pathnameToMdRelative, } from "./utils.js";
+import { buildLlmsTxt, extractDescription, extractMainContent, extractTitle, htmlPathToMdRelative, htmlPathToPathname, is404Pathname, mdRelativeToUrlPath, pathnameToHtmlCandidates, pathnameToMdRelative, } from "./utils.js";
 const turndown = new TurndownService();
 export default function madao(options) {
     const opts = typeof options === "string" ? { folder: options } : (options ?? {});
@@ -46,19 +46,11 @@ export default function madao(options) {
                 let websiteDescription;
                 const pageRoutes = resolvedRoutes.filter((r) => r.type === "page" || r.type === "fallback");
                 for (const route of pageRoutes) {
-                    const distURLs = assets.get(route.pattern);
-                    if (!distURLs?.length) {
+                    if (is404Pathname(route.pattern)) {
                         continue;
                     }
-                    if (is404Entrypoint(route.entrypoint)) {
-                        for (const distURL of distURLs) {
-                            const htmlRelative = path
-                                .relative(outDir, fileURLToPath(distURL))
-                                .replace(/\\/g, "/");
-                            if (htmlRelative.endsWith(".html")) {
-                                processedHtml.add(htmlRelative);
-                            }
-                        }
+                    const distURLs = assets.get(route.pattern);
+                    if (!distURLs?.length) {
                         continue;
                     }
                     for (const distURL of distURLs) {

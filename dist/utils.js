@@ -1,10 +1,6 @@
-/** Whether a route entrypoint is a custom or default Astro 404 page. */
-export function is404Entrypoint(entrypoint) {
-    return entrypoint.endsWith("404.astro");
-}
-/** Whether a built page pathname corresponds to a 404 error page. */
+/** Whether a route pattern or built page pathname is the 404 error page. */
 export function is404Pathname(pathname) {
-    return (pathname.replace(/\/$/, "") || "/") === "/404";
+    return pathname.replace(/^\/|\/$/g, "") === "404";
 }
 /** Directory-style markdown path mirroring Astro's `build.format: 'directory'`. */
 export function pathnameToMdRelative(pathname) {
