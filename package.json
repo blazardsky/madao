@@ -1,0 +1,35 @@
+{
+	"name": "madao",
+	"version": "0.1.0",
+	"type": "module",
+	"main": "dist/index.js",
+	"exports": {
+		".": "./dist/index.js",
+		"./middleware": "./dist/middleware.js"
+	},
+	"scripts": {
+		"build": "tsc",
+		"lint": "biome lint src",
+		"format": "biome format src",
+		"ci": "pnpm ci && pnpm lint && pnpm build",
+		"prepublishOnly": "pnpm build",
+		"changeset": "changeset",
+		"version": "changeset version",
+		"release": "pnpm version && changeset publish"
+	},
+	"dependencies": {
+		"turndown": "^7.2.4"
+	},
+	"devDependencies": {
+		"@astrojs/ts-plugin": "^1.10.10",
+		"@biomejs/biome": "2.5.3",
+		"@changesets/changelog-github": "^0.7.0",
+		"@changesets/cli": "^2.31.0",
+		"@types/node": "^26.1.1",
+		"@types/turndown": "^5.0.6",
+		"typescript": "^7.0.2"
+	},
+	"peerDependencies": {
+		"astro": "^7.0.7"
+	}
+}
