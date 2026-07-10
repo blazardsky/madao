@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import TurndownService from "turndown";
-import { buildLlmsTxt, extractDescription, extractMainContent, extractTitle, htmlPathToMdRelative, htmlPathToPathname, mdRelativeToUrlPath, pathnameToHtmlCandidates, pathnameToMdRelative, } from "./utils.js";
+import { buildLlmsTxt, extractDescription, extractMainContent, extractTitle, htmlPathToMdRelative, htmlPathToPathname, is404Entrypoint, is404Pathname, mdRelativeToUrlPath, pathnameToHtmlCandidates, pathnameToMdRelative, } from "./utils.js";
 const turndown = new TurndownService();
 export default function madao(options) {
     const opts = typeof options === "string" ? { folder: options } : (options ?? {});
@@ -50,6 +50,17 @@ export default function madao(options) {
                     if (!distURLs?.length) {
                         continue;
                     }
+                    if (is404Entrypoint(route.entrypoint)) {
+                        for (const distURL of distURLs) {
+                            const htmlRelative = path
+                                .relative(outDir, fileURLToPath(distURL))
+                                .replace(/\\/g, "/");
+                            if (htmlRelative.endsWith(".html")) {
+                                processedHtml.add(htmlRelative);
+                            }
+                        }
+                        continue;
+                    }
                     for (const distURL of distURLs) {
                         const htmlPath = fileURLToPath(distURL);
                         const htmlRelative = path.relative(outDir, htmlPath).replace(/\\/g, "/");
@@ -85,6 +96,9 @@ export default function madao(options) {
                 }
                 // Fallback for routes not captured via assets map
                 for (const page of pages) {
+                    if (is404Pathname(page.pathname)) {
+                        continue;
+                    }
                     const htmlCandidates = pathnameToHtmlCandidates(page.pathname);
                     for (const candidate of htmlCandidates) {
                         if (processedHtml.has(candidate)) {

@@ -10,6 +10,8 @@ import {
 	extractTitle,
 	htmlPathToMdRelative,
 	htmlPathToPathname,
+	is404Entrypoint,
+	is404Pathname,
 	mdRelativeToUrlPath,
 	pathnameToHtmlCandidates,
 	pathnameToMdRelative,
@@ -82,6 +84,18 @@ export default function madao(options?: string | MadaoOptions): AstroIntegration
 						continue;
 					}
 
+					if (is404Entrypoint(route.entrypoint)) {
+						for (const distURL of distURLs) {
+							const htmlRelative = path
+								.relative(outDir, fileURLToPath(distURL))
+								.replace(/\\/g, "/");
+							if (htmlRelative.endsWith(".html")) {
+								processedHtml.add(htmlRelative);
+							}
+						}
+						continue;
+					}
+
 					for (const distURL of distURLs) {
 						const htmlPath = fileURLToPath(distURL);
 						const htmlRelative = path.relative(outDir, htmlPath).replace(/\\/g, "/");
@@ -122,6 +136,10 @@ export default function madao(options?: string | MadaoOptions): AstroIntegration
 
 				// Fallback for routes not captured via assets map
 				for (const page of pages) {
+					if (is404Pathname(page.pathname)) {
+						continue;
+					}
+
 					const htmlCandidates = pathnameToHtmlCandidates(page.pathname);
 
 					for (const candidate of htmlCandidates) {
