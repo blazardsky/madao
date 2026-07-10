@@ -1,6 +1,13 @@
-# madao – Astro AI‑Ready Middleware
+![](https://img.shields.io/npm/v/astro-madao?style=flat-square)
 
+# MADAO – Making Astro AI-friendly
+
+(no it's not an acronym)
+
+<picture>
 ![](/assets/madao.webp)
+<figcaption>Taizou Hasegawa (Madao) from Gintama</figcaption>
+</picture>
 
 `madao (マダオ)` is a tiny Astro integration that injects a `<link rel="alternate" type="text/markdown" …>` tag into every rendered HTML page. The tag points to a generated Markdown representation of the page under a `/md/` folder, making the site **AI‑ready**: LLMs can consume the raw Markdown alongside the HTML. It also generates `llms.txt` and `llms-full.txt` to assure compatibility with more ai-bots.
 
@@ -14,7 +21,7 @@
 ## Installation
 
 ```bash
-npm i -D madao
+npm i -D astro-madao
 # install peer dependency if you haven't already
 npm i astro
 ```
@@ -23,7 +30,7 @@ Add the integration to `astro.config.mjs`:
 
 ```js
 import { defineConfig } from "astro";
-import madao from "madao";
+import madao from "astro-madao";
 
 export default defineConfig({
   integrations: [madao()],
@@ -59,3 +66,7 @@ npm run release
 ```
 
 The CI workflow runs lint, type‑checking and the build on every push.
+
+## MADAO??
+
+Like Hasegawa ([Gintama](https://gintama.fandom.com/wiki/Taizou_Hasegawa)), we are bound to become "totally hopeless old guy"s as AI will replace us. Let's make it happen faster
