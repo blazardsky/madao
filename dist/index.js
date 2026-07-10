@@ -3,9 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import TurndownService from "turndown";
 import { buildLlmsTxt, extractDescription, extractMainContent, extractTitle, htmlPathToMdRelative, htmlPathToPathname, is404Pathname, mdRelativeToUrlPath, pathnameToHtmlCandidates, pathnameToMdRelative, } from "./utils.js";
-
 const turndown = new TurndownService();
-
 export default function madao(options) {
     const opts = typeof options === "string" ? { folder: options } : (options ?? {});
     const folder = opts.folder ?? "md";

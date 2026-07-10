@@ -12,7 +12,7 @@
 		"enabled": true,
 		"indentStyle": "tab",
 		"lineWidth": 100,
-		"includes": ["src/*", "!**/.changeset", "!**/pnpm-lock.yaml", "!**/*.astro", "!.astro/*"]
+		"includes": ["src/*", "!dist/*", "!**/.changeset", "!**/pnpm-lock.yaml", "!**/*.astro", "!.astro/*"]
 	},
 	"linter": {
 		"enabled": true,
