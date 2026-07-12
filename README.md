@@ -11,6 +11,10 @@
 
 `madao (マダオ)` is a tiny Astro integration that injects a `<link rel="alternate" type="text/markdown" …>` tag into every rendered HTML page. The tag points to a generated Markdown representation of the page under a `/md/` folder, making the site **AI‑ready**: LLMs can consume the raw Markdown alongside the HTML. It also generates `llms.txt` and `llms-full.txt` to assure compatibility with more ai-bots.
 
+## MADAO??
+
+Like Hasegawa ([Gintama](https://gintama.fandom.com/wiki/Taizou_Hasegawa)), we are bound to become "totally hopeless old guy"s as AI will replace us. Let's make it happen faster
+
 ## Features
 
 - **Zero‑config**: add the integration to your `astro.config.mjs` and the middleware is wired automatically.
@@ -34,6 +38,28 @@ import madao from "astro-madao";
 
 export default defineConfig({
   integrations: [madao()],
+});
+```
+
+### Options
+
+You don't have to configure Madao, but you may want to personalize some settings:
+
+| Option         | Default Value               | What it Does                                                                                           |
+| -------------- | --------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `folder`       | `"md"`                      | Sets the name of the subfolder where the generated Markdown files will be placed.                      |
+| `title`        | (your homepage title)       | Sets the site title for the `llms.txt` and `llms-full.txt` files.                                      |
+| `description`  | (your homepage description) | Sets the site description for `llms.txt` and `llms-full.txt`.                                          |
+| `excludePaths` | `[]` (empty list)           | List of URL patterns to exclude from Markdown file generation (e.g., folders you don't want exported). |
+
+**Example:**
+
+```js
+  integrations: [madao({
+    folder: 'ai',
+    title: 'Madao',
+    excludePaths: 'homeworks'
+  })],
 });
 ```
 
@@ -66,10 +92,6 @@ npm run release
 ```
 
 The CI workflow runs lint, type‑checking and the build on every push.
-
-## MADAO??
-
-Like Hasegawa ([Gintama](https://gintama.fandom.com/wiki/Taizou_Hasegawa)), we are bound to become "totally hopeless old guy"s as AI will replace us. Let's make it happen faster
 
 ## ROADMAP
 

@@ -22,10 +22,11 @@ export interface MadaoOptions {
 	folder?: string;
 	title?: string;
 	description?: string;
+	excludePaths?: string[];
 }
 
-export default function madao(options?: string | MadaoOptions): AstroIntegration {
-	const opts = typeof options === "string" ? { folder: options } : (options ?? {});
+export default function madao(options?: MadaoOptions): AstroIntegration {
+	const opts = options ?? {};
 	const folder = opts.folder ?? "md";
 	const cleanFolder = folder.replace(/^\/|\/$/g, "");
 
@@ -55,6 +56,10 @@ export default function madao(options?: string | MadaoOptions): AstroIntegration
 			"astro:build:done": async ({ dir, assets, pages, logger }) => {
 				const outDir = fileURLToPath(dir);
 				const mdDir = path.join(outDir, cleanFolder);
+
+				if (opts.excludePaths && opts.excludePaths.length > 0) {
+					resolvedRoutes = resolvedRoutes.filter((r) => !opts.excludePaths!.includes(r.pattern));
+				}
 
 				try {
 					await mkdir(mdDir, { recursive: true });

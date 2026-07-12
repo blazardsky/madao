@@ -8,7 +8,15 @@
 		"type": "git",
 		"url": "https://github.com/blazardsky/madao"
 	},
-	"keywords": ["astro", "markdown", "ai", "md", "llms.txt", "llm"],
+	"keywords": [
+		"astro-integration", 
+		"markdown", 
+		"ai", 
+		"llms.txt", 
+		"utils", 
+		"utility", 
+		"seo"
+	],
 	"type": "module",
 	"files": ["dist"],
 	"main": "dist/index.js",
