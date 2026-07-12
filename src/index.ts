@@ -58,7 +58,7 @@ export default function madao(options?: MadaoOptions): AstroIntegration {
 				const mdDir = path.join(outDir, cleanFolder);
 
 				if (opts.excludePaths && opts.excludePaths.length > 0) {
-					resolvedRoutes = resolvedRoutes.filter((r) => !opts.excludePaths!.includes(r.pattern));
+					resolvedRoutes = resolvedRoutes.filter((r) => !opts.excludePaths?.includes(r.pattern));
 				}
 
 				try {
