@@ -15,7 +15,7 @@ export default function madao(options) {
             "astro:config:setup": ({ addMiddleware, updateConfig }) => {
                 addMiddleware({
                     order: "pre",
-                    entrypoint: "madao/middleware",
+                    entrypoint: "astro-madao/middleware",
                 });
                 updateConfig({
                     vite: {
