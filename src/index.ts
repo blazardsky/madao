@@ -10,7 +10,7 @@ import {
 	extractTitle,
 	htmlPathToMdRelative,
 	htmlPathToPathname,
-	is404Pathname,
+	isExcluded,
 	mdRelativeToUrlPath,
 	pathnameToHtmlCandidates,
 	pathnameToMdRelative,
@@ -22,6 +22,8 @@ export interface MadaoOptions {
 	folder?: string;
 	title?: string;
 	description?: string;
+	exclude?: string[];
+	/** @deprecated Use `exclude` instead. */
 	excludePaths?: string[];
 }
 
@@ -57,9 +59,8 @@ export default function madao(options?: MadaoOptions): AstroIntegration {
 				const outDir = fileURLToPath(dir);
 				const mdDir = path.join(outDir, cleanFolder);
 
-				if (opts.excludePaths && opts.excludePaths.length > 0) {
-					resolvedRoutes = resolvedRoutes.filter((r) => !opts.excludePaths?.includes(r.pattern));
-				}
+				const exclude = opts.exclude ?? opts.excludePaths ?? [];
+				resolvedRoutes = resolvedRoutes.filter((r) => !isExcluded(r.pattern, exclude));
 
 				try {
 					await mkdir(mdDir, { recursive: true });
@@ -83,7 +84,7 @@ export default function madao(options?: MadaoOptions): AstroIntegration {
 				const pageRoutes = resolvedRoutes.filter((r) => r.type === "page" || r.type === "fallback");
 
 				for (const route of pageRoutes) {
-					if (is404Pathname(route.pattern)) {
+					if (isExcluded(route.pattern, exclude)) {
 						continue;
 					}
 
@@ -106,6 +107,10 @@ export default function madao(options?: MadaoOptions): AstroIntegration {
 							const mdRelative = htmlPathToMdRelative(htmlRelative);
 							const mdPath = path.join(mdDir, mdRelative);
 							const pathname = htmlPathToPathname(htmlRelative);
+							if (isExcluded(pathname, exclude)) {
+								continue;
+							}
+
 							const cleanHtml = extractMainContent(html);
 							const markdown = turndown.turndown(cleanHtml);
 
@@ -132,7 +137,7 @@ export default function madao(options?: MadaoOptions): AstroIntegration {
 
 				// Fallback for routes not captured via assets map
 				for (const page of pages) {
-					if (is404Pathname(page.pathname)) {
+					if (isExcluded(page.pathname, exclude)) {
 						continue;
 					}
 

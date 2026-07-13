@@ -1,5 +1,7 @@
 /** Whether a route pattern or built page pathname is the 404 error page. */
 export declare function is404Pathname(pathname: string): boolean;
+/** Whether a route pattern or pathname should be excluded from markdown generation. */
+export declare function isExcluded(path: string, exclude: string[]): boolean;
 /** Directory-style markdown path mirroring Astro's `build.format: 'directory'`. */
 export declare function pathnameToMdRelative(pathname: string): string;
 /** Public URL path for the markdown alternate link. */

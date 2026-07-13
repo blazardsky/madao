@@ -3,6 +3,41 @@ export function is404Pathname(pathname: string): boolean {
 	return pathname.replace(/^\/|\/$/g, "") === "404";
 }
 
+function normalizeExcludePath(path: string): string {
+	return path.replace(/^\/+|\/+$/g, "");
+}
+
+function matchesExcludeEntry(path: string, entry: string): boolean {
+	const isFolder = entry.endsWith("/");
+	const normalizedPath = normalizeExcludePath(path);
+	const normalizedEntry = normalizeExcludePath(entry);
+
+	if (isFolder) {
+		return (
+			normalizedPath === normalizedEntry ||
+			normalizedPath.startsWith(`${normalizedEntry}/`)
+		);
+	}
+
+	return normalizedPath === normalizedEntry;
+}
+
+/** Whether a route pattern or pathname should be excluded from markdown generation. */
+export function isExcluded(path: string, exclude: string[]): boolean {
+	const unexclude = exclude.filter((entry) => entry.startsWith("!")).map((entry) => entry.slice(1));
+	const excludeOnly = exclude.filter((entry) => !entry.startsWith("!"));
+
+	if (unexclude.some((entry) => matchesExcludeEntry(path, entry))) {
+		return false;
+	}
+
+	if (is404Pathname(path)) {
+		return true;
+	}
+
+	return excludeOnly.some((entry) => matchesExcludeEntry(path, entry));
+}
+
 /** Directory-style markdown path mirroring Astro's `build.format: 'directory'`. */
 export function pathnameToMdRelative(pathname: string): string {
 	const normalized = pathname.replace(/\/$/, "") || "/";

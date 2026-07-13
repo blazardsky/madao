@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import TurndownService from "turndown";
-import { buildLlmsTxt, extractDescription, extractMainContent, extractTitle, htmlPathToMdRelative, htmlPathToPathname, is404Pathname, mdRelativeToUrlPath, pathnameToHtmlCandidates, pathnameToMdRelative, } from "./utils.js";
+import { buildLlmsTxt, extractDescription, extractMainContent, extractTitle, htmlPathToMdRelative, htmlPathToPathname, isExcluded, mdRelativeToUrlPath, pathnameToHtmlCandidates, pathnameToMdRelative, } from "./utils.js";
 const turndown = new TurndownService();
 export default function madao(options) {
     const opts = options ?? {};
@@ -31,9 +31,8 @@ export default function madao(options) {
             "astro:build:done": async ({ dir, assets, pages, logger }) => {
                 const outDir = fileURLToPath(dir);
                 const mdDir = path.join(outDir, cleanFolder);
-                if (opts.excludePaths && opts.excludePaths.length > 0) {
-                    resolvedRoutes = resolvedRoutes.filter((r) => !opts.excludePaths?.includes(r.pattern));
-                }
+                const exclude = opts.exclude ?? opts.excludePaths ?? [];
+                resolvedRoutes = resolvedRoutes.filter((r) => !isExcluded(r.pattern, exclude));
                 try {
                     await mkdir(mdDir, { recursive: true });
                 }
@@ -49,7 +48,7 @@ export default function madao(options) {
                 let websiteDescription;
                 const pageRoutes = resolvedRoutes.filter((r) => r.type === "page" || r.type === "fallback");
                 for (const route of pageRoutes) {
-                    if (is404Pathname(route.pattern)) {
+                    if (isExcluded(route.pattern, exclude)) {
                         continue;
                     }
                     const distURLs = assets.get(route.pattern);
@@ -68,6 +67,9 @@ export default function madao(options) {
                             const mdRelative = htmlPathToMdRelative(htmlRelative);
                             const mdPath = path.join(mdDir, mdRelative);
                             const pathname = htmlPathToPathname(htmlRelative);
+                            if (isExcluded(pathname, exclude)) {
+                                continue;
+                            }
                             const cleanHtml = extractMainContent(html);
                             const markdown = turndown.turndown(cleanHtml);
                             if (pathname === "/") {
@@ -91,7 +93,7 @@ export default function madao(options) {
                 }
                 // Fallback for routes not captured via assets map
                 for (const page of pages) {
-                    if (is404Pathname(page.pathname)) {
+                    if (isExcluded(page.pathname, exclude)) {
                         continue;
                     }
                     const htmlCandidates = pathnameToHtmlCandidates(page.pathname);
