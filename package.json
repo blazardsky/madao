@@ -1,6 +1,6 @@
 {
 	"name": "astro-madao",
-	"version": "0.2.2",
+	"version": "0.2.3",
 	"description": "Markdown alternative for easier AI access to your Astro site.",
 	"author": "Niccolò Agnoletti",
 	"license": "MIT",
