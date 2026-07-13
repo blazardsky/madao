@@ -13,10 +13,7 @@ function matchesExcludeEntry(path: string, entry: string): boolean {
 	const normalizedEntry = normalizeExcludePath(entry);
 
 	if (isFolder) {
-		return (
-			normalizedPath === normalizedEntry ||
-			normalizedPath.startsWith(`${normalizedEntry}/`)
-		);
+		return normalizedPath === normalizedEntry || normalizedPath.startsWith(`${normalizedEntry}/`);
 	}
 
 	return normalizedPath === normalizedEntry;
