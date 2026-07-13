@@ -4,14 +4,13 @@
 
 (no it's not an acronym)
 
+`madao` is a tiny Astro integration that injects a `<link rel="alternate" type="text/markdown" …>` tag into every rendered HTML page. The tag points to a generated Markdown representation of the page under a `/md/` folder, making the site **AI‑ready**: LLMs can consume the raw Markdown alongside the HTML. It also generates `llms.txt` and `llms-full.txt` to assure compatibility with more ai-bots.
+
+## MADAO (マダオ)?
 
 ![Taizou Hasegawa (Madao) from Gintama](/assets/madao.webp)
 
-`madao (マダオ)` is a tiny Astro integration that injects a `<link rel="alternate" type="text/markdown" …>` tag into every rendered HTML page. The tag points to a generated Markdown representation of the page under a `/md/` folder, making the site **AI‑ready**: LLMs can consume the raw Markdown alongside the HTML. It also generates `llms.txt` and `llms-full.txt` to assure compatibility with more ai-bots.
-
-## MADAO??
-
-Like Hasegawa ([Gintama](https://gintama.fandom.com/wiki/Taizou_Hasegawa)), we are bound to become "totally hopeless old guy"s as AI will replace us. Let's make it happen faster
+We are bound to become "totally hopeless old guy"s as AI will replace us and we lose our job, kinda like Hasegawa from ([Gintama](https://gintama.fandom.com/wiki/Taizou_Hasegawa)). And also MD-AI is written similar to madao.
 
 ## Features
 

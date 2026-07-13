@@ -5,7 +5,7 @@ import TurndownService from "turndown";
 import { buildLlmsTxt, extractDescription, extractMainContent, extractTitle, htmlPathToMdRelative, htmlPathToPathname, is404Pathname, mdRelativeToUrlPath, pathnameToHtmlCandidates, pathnameToMdRelative, } from "./utils.js";
 const turndown = new TurndownService();
 export default function madao(options) {
-    const opts = typeof options === "string" ? { folder: options } : (options ?? {});
+    const opts = options ?? {};
     const folder = opts.folder ?? "md";
     const cleanFolder = folder.replace(/^\/|\/$/g, "");
     let resolvedRoutes = [];
@@ -31,6 +31,9 @@ export default function madao(options) {
             "astro:build:done": async ({ dir, assets, pages, logger }) => {
                 const outDir = fileURLToPath(dir);
                 const mdDir = path.join(outDir, cleanFolder);
+                if (opts.excludePaths && opts.excludePaths.length > 0) {
+                    resolvedRoutes = resolvedRoutes.filter((r) => !opts.excludePaths?.includes(r.pattern));
+                }
                 try {
                     await mkdir(mdDir, { recursive: true });
                 }
