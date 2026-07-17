@@ -11,6 +11,8 @@ import {
 	extractMainContent,
 	extractTitle,
 	getLlmsSectionName,
+	getMarkdownLinkHeader,
+	getMarkdownUrl,
 	htmlPathToMdRelative,
 	htmlPathToPathname,
 	is404Pathname,
@@ -68,8 +70,20 @@ describe("path conversions", () => {
 	});
 
 	it("builds public markdown URLs under the configured folder", () => {
-		expect(pathnameToMdUrl("/", "md")).toBe("/md/index.md");
-		expect(pathnameToMdUrl("/about", "ai")).toBe("/ai/about/index.md");
+		expect(getMarkdownUrl("/")).toBe("/md/index.md");
+		expect(getMarkdownUrl("/about", "ai")).toBe("/ai/about/index.md");
+		expect(getMarkdownUrl("/blog/post/", "/docs/")).toBe("/docs/blog/post/index.md");
+		// pathnameToMdUrl remains as a compatibility alias
+		expect(pathnameToMdUrl("/", "md")).toBe(getMarkdownUrl("/", "md"));
+	});
+
+	it("builds a Link header value from the same markdown URL", () => {
+		expect(getMarkdownLinkHeader("/about", "md")).toBe(
+			'</md/about/index.md>; rel="alternate"; type="text/markdown"',
+		);
+		expect(getMarkdownLinkHeader("/")).toBe(
+			'</md/index.md>; rel="alternate"; type="text/markdown"',
+		);
 	});
 
 	it("lists HTML candidates for a pathname", () => {

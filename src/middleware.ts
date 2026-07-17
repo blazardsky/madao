@@ -1,5 +1,15 @@
 import { defineMiddleware } from "astro:middleware";
-import { extractCharset, pathnameToMdUrl, withCharset } from "./utils.js";
+import {
+	extractCharset,
+	getMarkdownLinkHeader,
+	getMarkdownUrl,
+	withCharset,
+} from "./utils.js";
+
+function isHttpHeaderEnabled(): boolean {
+	// Vite `define` injects the string `"true"` / `"false"`; unset defaults to on.
+	return process.env.ASTRO_MADAO_HTTP_HEADER !== "false";
+}
 
 export const onRequest = defineMiddleware(async (context, next) => {
 	const response = await next();
@@ -24,12 +34,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
 		});
 	}
 
-	if (!contentType.includes("text/html")) {
+	if (!contentType.startsWith("text/html")) {
 		return response;
 	}
 
 	const pagePath = pathname.replace(/\/$/, "") || "/";
-	const mdPath = pathnameToMdUrl(pagePath, folderName);
+	const mdPath = getMarkdownUrl(pagePath, folderName);
 	const linkTag = `<link rel="alternate" type="text/markdown" href="${mdPath}" />`;
 
 	const html = await response.text();
@@ -39,6 +49,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
 	const headers = new Headers(response.headers);
 	headers.delete("content-length");
 	headers.set("content-type", withCharset(contentType, charset, "text/html"));
+
+	if (isHttpHeaderEnabled()) {
+		// append() preserves any existing Link headers (preload, preconnect, etc.)
+		headers.append("Link", getMarkdownLinkHeader(pagePath, folderName));
+	}
 
 	return new Response(modifiedHtml, {
 		status: response.status,

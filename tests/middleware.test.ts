@@ -31,6 +31,46 @@ describe("madao middleware", () => {
 		);
 		expect(html).toContain("</head>");
 		expect(response.headers.get("content-type")).toBe("text/html; charset=utf-8");
+		expect(response.headers.get("Link")).toBe(
+			'</ai/about/index.md>; rel="alternate"; type="text/markdown"',
+		);
+	});
+
+	it("appends the Link header without clobbering existing Link values", async () => {
+		const { onRequest } = await import("../src/middleware.js");
+
+		const response = await onRequest(
+			{ url: new URL("https://example.com/") } as never,
+			async () =>
+				new Response("<html><head></head><body></body></html>", {
+					headers: {
+						"content-type": "text/html",
+						Link: "</styles.css>; rel=preload; as=style",
+					},
+				}),
+		);
+
+		const links = response.headers.get("Link");
+		expect(links).toContain("</styles.css>; rel=preload; as=style");
+		expect(links).toContain('</md/index.md>; rel="alternate"; type="text/markdown"');
+	});
+
+	it("skips the Link header when httpHeader is disabled", async () => {
+		vi.stubEnv("ASTRO_MADAO_HTTP_HEADER", "false");
+		const { onRequest } = await import("../src/middleware.js");
+
+		const response = await onRequest(
+			{ url: new URL("https://example.com/about") } as never,
+			async () =>
+				new Response("<html><head></head><body></body></html>", {
+					headers: { "content-type": "text/html" },
+				}),
+		);
+
+		expect(await response.text()).toContain(
+			'<link rel="alternate" type="text/markdown" href="/md/about/index.md" />',
+		);
+		expect(response.headers.get("Link")).toBeNull();
 	});
 
 	it("leaves non-HTML responses untouched", async () => {

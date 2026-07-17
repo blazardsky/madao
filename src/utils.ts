@@ -88,10 +88,25 @@ export function pathnameToMdRelative(pathname: string): string {
 	return `${slug}/index.md`;
 }
 
-/** Public URL path for the markdown alternate link. */
-export function pathnameToMdUrl(pathname: string, folder: string): string {
+/**
+ * Public URL for the markdown alternate of a page pathname.
+ * Shared by the HTML `<link rel="alternate">` tag and the HTTP `Link` header
+ * so both always resolve to the same path (e.g. `/md/about/index.md`).
+ */
+export function getMarkdownUrl(pathname: string, folder: string = "md"): string {
+	const cleanFolder = folder.replace(/^\/|\/$/g, "") || "md";
 	const mdRelative = pathnameToMdRelative(pathname);
-	return `/${folder}/${mdRelative}`;
+	return `/${cleanFolder}/${mdRelative}`;
+}
+
+/** @deprecated Prefer {@link getMarkdownUrl}. */
+export function pathnameToMdUrl(pathname: string, folder: string): string {
+	return getMarkdownUrl(pathname, folder);
+}
+
+/** Value for `Link: <url>; rel="alternate"; type="text/markdown"`. */
+export function getMarkdownLinkHeader(pathname: string, folder: string = "md"): string {
+	return `<${getMarkdownUrl(pathname, folder)}>; rel="alternate"; type="text/markdown"`;
 }
 
 export function pathnameToHtmlCandidates(pathname: string): string[] {

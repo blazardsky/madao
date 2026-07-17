@@ -6,8 +6,16 @@ export declare function isExcluded(path: string, exclude: string[]): boolean;
 export declare function collectHtmlFiles(outDir: string, skipFolder?: string): Promise<string[]>;
 /** Directory-style markdown path mirroring Astro's `build.format: 'directory'`. */
 export declare function pathnameToMdRelative(pathname: string): string;
-/** Public URL path for the markdown alternate link. */
+/**
+ * Public URL for the markdown alternate of a page pathname.
+ * Shared by the HTML `<link rel="alternate">` tag and the HTTP `Link` header
+ * so both always resolve to the same path (e.g. `/md/about/index.md`).
+ */
+export declare function getMarkdownUrl(pathname: string, folder?: string): string;
+/** @deprecated Prefer {@link getMarkdownUrl}. */
 export declare function pathnameToMdUrl(pathname: string, folder: string): string;
+/** Value for `Link: <url>; rel="alternate"; type="text/markdown"`. */
+export declare function getMarkdownLinkHeader(pathname: string, folder?: string): string;
 export declare function pathnameToHtmlCandidates(pathname: string): string[];
 export declare function htmlPathToMdRelative(htmlRelative: string): string;
 export declare function htmlPathToPathname(htmlRelative: string): string;

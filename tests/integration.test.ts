@@ -38,6 +38,26 @@ describe("madao integration", () => {
 			vite: {
 				define: {
 					"process.env.ASTRO_MADAO_FOLDER": JSON.stringify("ai"),
+					"process.env.ASTRO_MADAO_HTTP_HEADER": JSON.stringify("true"),
+				},
+			},
+		});
+	});
+
+	it("allows disabling the HTTP Link header via httpHeader: false", () => {
+		const integration = madao({ httpHeader: false });
+		const updateConfig = vi.fn();
+
+		integration.hooks["astro:config:setup"]?.({
+			addMiddleware: vi.fn(),
+			updateConfig,
+		} as never);
+
+		expect(updateConfig).toHaveBeenCalledWith({
+			vite: {
+				define: {
+					"process.env.ASTRO_MADAO_FOLDER": JSON.stringify("md"),
+					"process.env.ASTRO_MADAO_HTTP_HEADER": JSON.stringify("false"),
 				},
 			},
 		});

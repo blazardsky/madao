@@ -17,6 +17,8 @@ import {
 	mergeMadaoHeaders,
 } from "./utils.js";
 
+export { getMarkdownLinkHeader, getMarkdownUrl } from "./utils.js";
+
 const turndown = new TurndownService();
 
 export interface MadaoOptions {
@@ -26,12 +28,18 @@ export interface MadaoOptions {
 	exclude?: string[];
 	/** @deprecated Use `exclude` instead. */
 	excludePaths?: string[];
+	/**
+	 * When true (default), append an HTTP `Link` header pointing at the
+	 * markdown alternate on every HTML response.
+	 */
+	httpHeader?: boolean;
 }
 
 export default function madao(options?: MadaoOptions): AstroIntegration {
 	const opts = options ?? {};
 	const folder = opts.folder ?? "md";
 	const cleanFolder = folder.replace(/^\/|\/$/g, "");
+	const httpHeader = opts.httpHeader !== false;
 
 	return {
 		name: "madao",
@@ -45,6 +53,9 @@ export default function madao(options?: MadaoOptions): AstroIntegration {
 					vite: {
 						define: {
 							"process.env.ASTRO_MADAO_FOLDER": JSON.stringify(cleanFolder),
+							"process.env.ASTRO_MADAO_HTTP_HEADER": JSON.stringify(
+								httpHeader ? "true" : "false",
+							),
 						},
 					},
 				});

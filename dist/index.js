@@ -3,11 +3,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import TurndownService from "turndown";
 import { buildLlmsTxt, collectHtmlFiles, extractCharset, extractDescription, extractMainContent, extractTitle, htmlPathToMdRelative, htmlPathToPathname, isExcluded, mdRelativeToUrlPath, mergeMadaoHeaders, } from "./utils.js";
+export { getMarkdownLinkHeader, getMarkdownUrl } from "./utils.js";
 const turndown = new TurndownService();
 export default function madao(options) {
     const opts = options ?? {};
     const folder = opts.folder ?? "md";
     const cleanFolder = folder.replace(/^\/|\/$/g, "");
+    const httpHeader = opts.httpHeader !== false;
     return {
         name: "madao",
         hooks: {
@@ -20,6 +22,7 @@ export default function madao(options) {
                     vite: {
                         define: {
                             "process.env.ASTRO_MADAO_FOLDER": JSON.stringify(cleanFolder),
+                            "process.env.ASTRO_MADAO_HTTP_HEADER": JSON.stringify(httpHeader ? "true" : "false"),
                         },
                     },
                 });
