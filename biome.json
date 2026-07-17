@@ -6,7 +6,17 @@
 		"useIgnoreFile": false
 	},
 	"files": {
-		"ignoreUnknown": false
+		"ignoreUnknown": false,
+		"includes": [
+			"**",
+			"!dist",
+			"!.pnpm-store",
+			"!node_modules",
+			"!.changeset",
+			"!.astro",
+			"!**/pnpm-lock.yaml",
+			"!**/*.astro"
+		]
 	},
 	"formatter": {
 		"enabled": true,
@@ -14,6 +24,7 @@
 		"lineWidth": 100,
 		"includes": [
 			"src/*",
+			"tests/*",
 			"!dist/*",
 			"!**/.changeset",
 			"!**/pnpm-lock.yaml",
@@ -23,7 +34,7 @@
 	},
 	"linter": {
 		"enabled": true,
-		"includes": ["src/*", "!.astro/*"],
+		"includes": ["src/*", "tests/*", "!.astro/*"],
 		"rules": {
 			"preset": "recommended"
 		}

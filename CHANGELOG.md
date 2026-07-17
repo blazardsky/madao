@@ -1,5 +1,11 @@
 # madao
 
+## 0.3.1
+
+### Patch Changes
+
+- Fix accented-character mojibake when serving markdown by emitting `_headers` (and middleware Content-Type) with an explicit charset inferred from the page `<meta charset>` / `http-equiv` content-type, falling back to `utf-8`. Add Vitest coverage for utils, middleware, integration builds, UTF-8 preservation, and charset header generation.
+
 ## 0.3.0
 
 ### Minor Changes

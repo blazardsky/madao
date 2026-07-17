@@ -16,6 +16,7 @@
 		"strict": true,
 		"noEmitOnError": true
 	},
+	"types": ["node"],
 	"include": [".astro/types.d.ts", "src/*", "env.d.ts"],
 	"exclude": ["dist"],
 	"plugins": [

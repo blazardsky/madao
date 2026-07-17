@@ -1,4 +1,4 @@
-![](https://img.shields.io/npm/v/astro-madao?style=flat-square)
+![NPM Version](https://img.shields.io/npm/v/astro-madao) ![NPM Last Update](https://img.shields.io/npm/last-update/astro-madao) ![W.I.P.](https://img.shields.io/badge/work%20in%20progress)
 
 # MADAO – Making Astro AI-friendly
 

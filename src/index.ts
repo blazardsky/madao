@@ -6,6 +6,7 @@ import TurndownService from "turndown";
 import {
 	buildLlmsTxt,
 	collectHtmlFiles,
+	extractCharset,
 	extractDescription,
 	extractMainContent,
 	extractTitle,
@@ -13,6 +14,7 @@ import {
 	htmlPathToPathname,
 	isExcluded,
 	mdRelativeToUrlPath,
+	mergeMadaoHeaders,
 } from "./utils.js";
 
 const turndown = new TurndownService();
@@ -73,6 +75,8 @@ export default function madao(options?: MadaoOptions): AstroIntegration {
 				const fullContents: string[] = [];
 				let websiteTitle: string | undefined;
 				let websiteDescription: string | undefined;
+				let homeCharset: string | undefined;
+				let firstCharset: string | undefined;
 				let skipped = 0;
 
 				const htmlFiles = await collectHtmlFiles(outDir, cleanFolder);
@@ -92,10 +96,15 @@ export default function madao(options?: MadaoOptions): AstroIntegration {
 						const mdPath = path.join(mdDir, mdRelative);
 						const cleanHtml = extractMainContent(html);
 						const markdown = turndown.turndown(cleanHtml);
+						const pageCharset = extractCharset(html);
 
+						if (!firstCharset) {
+							firstCharset = pageCharset;
+						}
 						if (pathname === "/") {
 							websiteTitle = extractTitle(html);
 							websiteDescription = extractDescription(html);
+							homeCharset = pageCharset;
 						}
 
 						await mkdir(path.dirname(mdPath), { recursive: true });
@@ -135,6 +144,25 @@ export default function madao(options?: MadaoOptions): AstroIntegration {
 					logger.info("Generated llms.txt and llms-full.txt");
 				} catch (error) {
 					logger.error(`Failed to write llms files: ${error}`);
+				}
+
+				try {
+					const headersPath = path.join(outDir, "_headers");
+					let existing: string | undefined;
+					try {
+						existing = await readFile(headersPath, "utf-8");
+					} catch {
+						existing = undefined;
+					}
+					const charset = homeCharset ?? firstCharset ?? "utf-8";
+					await writeFile(
+						headersPath,
+						mergeMadaoHeaders(existing, cleanFolder, charset),
+						"utf-8",
+					);
+					logger.info(`Ensured Content-Type charset=${charset} for markdown files`);
+				} catch (error) {
+					logger.error(`Failed to write _headers: ${error}`);
 				}
 			},
 		},

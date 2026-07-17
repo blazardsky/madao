@@ -116,6 +116,39 @@ export function extractTitle(html) {
     const match = html.match(/<title[^>]*>([^<]*)<\/title>/i);
     return match?.[1]?.trim();
 }
+const DEFAULT_CHARSET = "utf-8";
+/** Normalize a charset label for Content-Type (lowercase, trimmed). */
+export function normalizeCharset(value) {
+    const trimmed = value?.trim();
+    if (!trimmed) {
+        return DEFAULT_CHARSET;
+    }
+    return trimmed.toLowerCase();
+}
+/**
+ * Read charset from a rendered HTML document's meta tags.
+ * Prefers `<meta charset>`, then `http-equiv="content-type"`, then utf-8.
+ */
+export function extractCharset(html) {
+    for (const match of html.matchAll(/<meta\b[^>]*>/gi)) {
+        const tag = match[0];
+        const withoutContent = tag.replace(/\bcontent\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "");
+        const directCharset = withoutContent.match(/\bcharset\s*=\s*["']?\s*([a-zA-Z0-9._-]+)/i);
+        if (directCharset?.[1]) {
+            return normalizeCharset(directCharset[1]);
+        }
+        if (!/\bhttp-equiv\s*=\s*["']?content-type["']?/i.test(tag)) {
+            continue;
+        }
+        const content = tag.match(/\bcontent\s*=\s*["']([^"']*)["']/i)?.[1]
+            ?? tag.match(/\bcontent\s*=\s*([^\s>]+)/i)?.[1];
+        const charsetInContent = content?.match(/charset\s*=\s*([a-zA-Z0-9._-]+)/i)?.[1];
+        if (charsetInContent) {
+            return normalizeCharset(charsetInContent);
+        }
+    }
+    return DEFAULT_CHARSET;
+}
 export function extractDescription(html) {
     const match = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["'][^>]*>/i);
     if (match) {
@@ -146,6 +179,51 @@ export function getLlmsSectionName(pathname) {
     }
     const folder = normalized.replace(/^\//, "").split("/")[0];
     return folder.charAt(0).toUpperCase() + folder.slice(1);
+}
+const HEADERS_BEGIN = "# BEGIN astro-madao";
+const HEADERS_END = "# END astro-madao";
+/**
+ * Cloudflare Pages / Netlify `_headers` rules so `.md` and llms files are
+ * served with an explicit charset. Without this, browsers often decode
+ * `text/markdown` / `text/plain` as Latin-1 and turn `più` into `piÃ¹`.
+ */
+export function buildMadaoHeadersBlock(folder, charset = DEFAULT_CHARSET) {
+    const cleanFolder = folder.replace(/^\/|\/$/g, "");
+    const encoding = normalizeCharset(charset);
+    return [
+        HEADERS_BEGIN,
+        `/${cleanFolder}/*`,
+        `  Content-Type: text/markdown; charset=${encoding}`,
+        "",
+        "/llms.txt",
+        `  Content-Type: text/plain; charset=${encoding}`,
+        "",
+        "/llms-full.txt",
+        `  Content-Type: text/plain; charset=${encoding}`,
+        HEADERS_END,
+        "",
+    ].join("\n");
+}
+/** Merge madao charset rules into an existing `_headers` file body. */
+export function mergeMadaoHeaders(existing, folder, charset = DEFAULT_CHARSET) {
+    const block = buildMadaoHeadersBlock(folder, charset);
+    const current = existing?.replace(/\r\n/g, "\n") ?? "";
+    if (current.includes(HEADERS_BEGIN) && current.includes(HEADERS_END)) {
+        return current.replace(new RegExp(`${HEADERS_BEGIN}[\\s\\S]*?${HEADERS_END}\\n?`), block);
+    }
+    if (!current.trim()) {
+        return block;
+    }
+    return `${current.trimEnd()}\n\n${block}`;
+}
+/** Set or replace the charset parameter on a Content-Type header value. */
+export function withCharset(contentType, charset, fallbackType) {
+    const encoding = normalizeCharset(charset);
+    const base = contentType || fallbackType;
+    if (/charset=/i.test(base)) {
+        return base.replace(/charset=[^;]*/i, `charset=${encoding}`);
+    }
+    return `${base}; charset=${encoding}`;
 }
 export function buildLlmsTxt(entries, { title, description }) {
     const grouped = new Map();
