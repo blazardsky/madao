@@ -1,17 +1,31 @@
+import { readdir } from "node:fs/promises";
+import path from "node:path";
 /** Whether a route pattern or built page pathname is the 404 error page. */
 export function is404Pathname(pathname) {
     return pathname.replace(/^\/|\/$/g, "") === "404";
 }
-function normalizeExcludePath(path) {
-    return path.replace(/^\/+|\/+$/g, "");
+function normalizeExcludePath(value) {
+    let normalized = value.replace(/^\/+|\/+$/g, "");
+    if (normalized.endsWith("/index.html")) {
+        normalized = normalized.slice(0, -"/index.html".length);
+    }
+    else if (normalized.endsWith(".html")) {
+        normalized = normalized.slice(0, -5);
+    }
+    if (normalized.endsWith("/index.md")) {
+        normalized = normalized.slice(0, -"/index.md".length);
+    }
+    else if (normalized.endsWith(".md")) {
+        normalized = normalized.slice(0, -3);
+    }
+    return normalized;
 }
 function matchesExcludeEntry(path, entry) {
     const isFolder = entry.endsWith("/");
     const normalizedPath = normalizeExcludePath(path);
     const normalizedEntry = normalizeExcludePath(entry);
     if (isFolder) {
-        return (normalizedPath === normalizedEntry ||
-            normalizedPath.startsWith(`${normalizedEntry}/`));
+        return normalizedPath === normalizedEntry || normalizedPath.startsWith(`${normalizedEntry}/`);
     }
     return normalizedPath === normalizedEntry;
 }
@@ -26,6 +40,28 @@ export function isExcluded(path, exclude) {
         return true;
     }
     return excludeOnly.some((entry) => matchesExcludeEntry(path, entry));
+}
+/** Collect all built HTML files under outDir, skipping the markdown output folder. */
+export async function collectHtmlFiles(outDir, skipFolder) {
+    const results = [];
+    async function walk(dir) {
+        const entries = await readdir(dir, { withFileTypes: true });
+        for (const entry of entries) {
+            const full = path.join(dir, entry.name);
+            if (entry.isDirectory()) {
+                const relative = path.relative(outDir, full).replace(/\\/g, "/");
+                if (skipFolder && (relative === skipFolder || relative.startsWith(`${skipFolder}/`))) {
+                    continue;
+                }
+                await walk(full);
+            }
+            else if (entry.name.endsWith(".html")) {
+                results.push(full);
+            }
+        }
+    }
+    await walk(outDir);
+    return results.sort();
 }
 /** Directory-style markdown path mirroring Astro's `build.format: 'directory'`. */
 export function pathnameToMdRelative(pathname) {

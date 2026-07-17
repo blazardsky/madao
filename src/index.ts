@@ -1,10 +1,11 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { AstroIntegration, IntegrationResolvedRoute } from "astro";
+import type { AstroIntegration } from "astro";
 import TurndownService from "turndown";
 import {
 	buildLlmsTxt,
+	collectHtmlFiles,
 	extractDescription,
 	extractMainContent,
 	extractTitle,
@@ -12,8 +13,6 @@ import {
 	htmlPathToPathname,
 	isExcluded,
 	mdRelativeToUrlPath,
-	pathnameToHtmlCandidates,
-	pathnameToMdRelative,
 } from "./utils.js";
 
 const turndown = new TurndownService();
@@ -32,8 +31,6 @@ export default function madao(options?: MadaoOptions): AstroIntegration {
 	const folder = opts.folder ?? "md";
 	const cleanFolder = folder.replace(/^\/|\/$/g, "");
 
-	let resolvedRoutes: IntegrationResolvedRoute[] = [];
-
 	return {
 		name: "madao",
 		hooks: {
@@ -51,16 +48,10 @@ export default function madao(options?: MadaoOptions): AstroIntegration {
 				});
 			},
 
-			"astro:routes:resolved": ({ routes }) => {
-				resolvedRoutes = routes;
-			},
-
-			"astro:build:done": async ({ dir, assets, pages, logger }) => {
+			"astro:build:done": async ({ dir, logger }) => {
 				const outDir = fileURLToPath(dir);
 				const mdDir = path.join(outDir, cleanFolder);
-
 				const exclude = opts.exclude ?? opts.excludePaths ?? [];
-				resolvedRoutes = resolvedRoutes.filter((r) => !isExcluded(r.pattern, exclude));
 
 				try {
 					await mkdir(mdDir, { recursive: true });
@@ -70,6 +61,9 @@ export default function madao(options?: MadaoOptions): AstroIntegration {
 				}
 
 				logger.info("Building LLM files inside output directory...");
+				if (exclude.length > 0) {
+					logger.info(`Exclude rules: ${exclude.join(", ")}`);
+				}
 
 				const entries: {
 					pathname: string;
@@ -77,106 +71,50 @@ export default function madao(options?: MadaoOptions): AstroIntegration {
 					title?: string;
 				}[] = [];
 				const fullContents: string[] = [];
-				const processedHtml = new Set<string>();
 				let websiteTitle: string | undefined;
 				let websiteDescription: string | undefined;
+				let skipped = 0;
 
-				const pageRoutes = resolvedRoutes.filter((r) => r.type === "page" || r.type === "fallback");
+				const htmlFiles = await collectHtmlFiles(outDir, cleanFolder);
 
-				for (const route of pageRoutes) {
-					if (isExcluded(route.pattern, exclude)) {
+				for (const htmlPath of htmlFiles) {
+					const htmlRelative = path.relative(outDir, htmlPath).replace(/\\/g, "/");
+					const pathname = htmlPathToPathname(htmlRelative);
+
+					if (isExcluded(pathname, exclude) || isExcluded(htmlRelative, exclude)) {
+						skipped += 1;
 						continue;
 					}
 
-					const distURLs = assets.get(route.pattern);
-					if (!distURLs?.length) {
-						continue;
-					}
+					try {
+						const html = await readFile(htmlPath, "utf-8");
+						const mdRelative = htmlPathToMdRelative(htmlRelative);
+						const mdPath = path.join(mdDir, mdRelative);
+						const cleanHtml = extractMainContent(html);
+						const markdown = turndown.turndown(cleanHtml);
 
-					for (const distURL of distURLs) {
-						const htmlPath = fileURLToPath(distURL);
-						const htmlRelative = path.relative(outDir, htmlPath).replace(/\\/g, "/");
-
-						if (!htmlRelative.endsWith(".html") || processedHtml.has(htmlRelative)) {
-							continue;
+						if (pathname === "/") {
+							websiteTitle = extractTitle(html);
+							websiteDescription = extractDescription(html);
 						}
-						processedHtml.add(htmlRelative);
 
-						try {
-							const html = await readFile(htmlPath, "utf-8");
-							const mdRelative = htmlPathToMdRelative(htmlRelative);
-							const mdPath = path.join(mdDir, mdRelative);
-							const pathname = htmlPathToPathname(htmlRelative);
-							if (isExcluded(pathname, exclude)) {
-								continue;
-							}
+						await mkdir(path.dirname(mdPath), { recursive: true });
+						await writeFile(mdPath, markdown, "utf-8");
 
-							const cleanHtml = extractMainContent(html);
-							const markdown = turndown.turndown(cleanHtml);
-
-							if (pathname === "/") {
-								websiteTitle = extractTitle(html);
-								websiteDescription = extractDescription(html);
-							}
-
-							await mkdir(path.dirname(mdPath), { recursive: true });
-							await writeFile(mdPath, markdown, "utf-8");
-
-							entries.push({
-								pathname,
-								mdPath: mdRelativeToUrlPath(mdRelative, cleanFolder),
-								title: extractTitle(html),
-							});
-							fullContents.push(markdown);
-							logger.info(`Generated ${mdRelative}`);
-						} catch (error) {
-							logger.error(`Failed to convert ${htmlRelative}: ${error}`);
-						}
+						entries.push({
+							pathname,
+							mdPath: mdRelativeToUrlPath(mdRelative, cleanFolder),
+							title: extractTitle(html),
+						});
+						fullContents.push(markdown);
+						logger.info(`Generated ${mdRelative}`);
+					} catch (error) {
+						logger.error(`Failed to convert ${htmlRelative}: ${error}`);
 					}
 				}
 
-				// Fallback for routes not captured via assets map
-				for (const page of pages) {
-					if (isExcluded(page.pathname, exclude)) {
-						continue;
-					}
-
-					const htmlCandidates = pathnameToHtmlCandidates(page.pathname);
-
-					for (const candidate of htmlCandidates) {
-						if (processedHtml.has(candidate)) {
-							break;
-						}
-
-						try {
-							const html = await readFile(path.join(outDir, candidate), "utf-8");
-							processedHtml.add(candidate);
-
-							const mdRelative = pathnameToMdRelative(page.pathname);
-							const mdPath = path.join(mdDir, mdRelative);
-							const cleanHtml = extractMainContent(html);
-							const markdown = turndown.turndown(cleanHtml);
-
-							if (page.pathname === "/" || page.pathname === "") {
-								websiteTitle = extractTitle(html);
-								websiteDescription = extractDescription(html);
-							}
-
-							await mkdir(path.dirname(mdPath), { recursive: true });
-							await writeFile(mdPath, markdown, "utf-8");
-
-							entries.push({
-								pathname: page.pathname,
-								mdPath: mdRelativeToUrlPath(mdRelative, cleanFolder),
-								title: extractTitle(html),
-							});
-							fullContents.push(markdown);
-							logger.info(`Generated ${mdRelative}`);
-							break;
-						} catch {
-							// try next candidate
-						}
-					}
+				if (skipped > 0) {
+					logger.info(`Skipped ${skipped} excluded page(s)`);
 				}
 
 				if (entries.length === 0) {

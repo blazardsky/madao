@@ -2,6 +2,8 @@
 export declare function is404Pathname(pathname: string): boolean;
 /** Whether a route pattern or pathname should be excluded from markdown generation. */
 export declare function isExcluded(path: string, exclude: string[]): boolean;
+/** Collect all built HTML files under outDir, skipping the markdown output folder. */
+export declare function collectHtmlFiles(outDir: string, skipFolder?: string): Promise<string[]>;
 /** Directory-style markdown path mirroring Astro's `build.format: 'directory'`. */
 export declare function pathnameToMdRelative(pathname: string): string;
 /** Public URL path for the markdown alternate link. */
