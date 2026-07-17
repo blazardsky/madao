@@ -1,6 +1,6 @@
 {
 	"name": "astro-madao",
-	"version": "0.2.3",
+	"version": "0.3.0",
 	"description": "Markdown alternative for easier AI access to your Astro site.",
 	"author": "Niccolò Agnoletti",
 	"license": "MIT",
@@ -9,16 +9,18 @@
 		"url": "https://github.com/blazardsky/madao"
 	},
 	"keywords": [
-		"astro-integration", 
-		"markdown", 
-		"ai", 
-		"llms.txt", 
-		"utils", 
-		"utility", 
+		"astro-integration",
+		"markdown",
+		"ai",
+		"llms.txt",
+		"utils",
+		"utility",
 		"seo"
 	],
 	"type": "module",
-	"files": ["dist"],
+	"files": [
+		"dist"
+	],
 	"main": "dist/index.js",
 	"exports": {
 		".": "./dist/index.js",
