@@ -2,7 +2,7 @@
 disclaimer: this is an experiment, not guaranteed to work as it depends on how the ai crawls your website. It will hopefully become more useful as time passes and standards are created and adopted
 ---
 
-![NPM Version](https://img.shields.io/npm/v/astro-madao) ![NPM Last Update](https://img.shields.io/npm/last-update/astro-madao) ![W.I.P.](https://img.shields.io/badge/work%20in%20progress)
+![NPM Version](https://img.shields.io/npm/v/astro-madao) ![NPM Last Update](https://img.shields.io/npm/last-update/astro-madao) ![NPM Downloads](https://img.shields.io/npm/dm/astro-madao)
 
 # MADAO – Making Astro AI-friendly
 
