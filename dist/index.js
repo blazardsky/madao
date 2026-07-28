@@ -3,17 +3,20 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import TurndownService from "turndown";
 import { buildLlmsTxt, collectHtmlFiles, extractCharset, extractDescription, extractMainContent, extractTitle, htmlPathToMdRelative, htmlPathToPathname, isExcluded, mdRelativeToUrlPath, mergeMadaoHeaders, } from "./utils.js";
+import { resolveWebmcp, WEBMCP_CLIENT_SCRIPT, WEBMCP_MARKDOWN_TOOL_NAME, } from "./webmcp.js";
 export { getMarkdownLinkHeader, getMarkdownUrl } from "./utils.js";
+export { resolveWebmcp, WEBMCP_MARKDOWN_TOOL_NAME, } from "./webmcp.js";
 const turndown = new TurndownService();
 export default function madao(options) {
     const opts = options ?? {};
     const folder = opts.folder ?? "md";
     const cleanFolder = folder.replace(/^\/|\/$/g, "");
     const httpHeader = opts.httpHeader !== false;
+    const webmcp = resolveWebmcp(opts.webmcp);
     return {
         name: "madao",
         hooks: {
-            "astro:config:setup": ({ addMiddleware, updateConfig }) => {
+            "astro:config:setup": ({ addMiddleware, injectScript, logger, updateConfig }) => {
                 addMiddleware({
                     order: "pre",
                     entrypoint: "astro-madao/middleware",
@@ -26,6 +29,10 @@ export default function madao(options) {
                         },
                     },
                 });
+                if (webmcp.enabled && webmcp.markdownTool) {
+                    injectScript("head-inline", WEBMCP_CLIENT_SCRIPT);
+                    logger.info(`Generated WebMCP tool: ${WEBMCP_MARKDOWN_TOOL_NAME}`);
+                }
             },
             "astro:build:done": async ({ dir, logger }) => {
                 const outDir = fileURLToPath(dir);

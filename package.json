@@ -1,6 +1,6 @@
 {
 	"name": "astro-madao",
-	"version": "0.3.1",
+	"version": "0.4.0",
 	"description": "Markdown alternative for easier AI access to your Astro site.",
 	"author": "Niccolò Agnoletti",
 	"license": "MIT",
@@ -15,7 +15,8 @@
 		"llms.txt",
 		"utils",
 		"utility",
-		"seo"
+		"seo",
+		"webmcp"
 	],
 	"type": "module",
 	"files": [

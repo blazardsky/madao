@@ -141,14 +141,10 @@ describe("HTML extraction", () => {
 		expect(extractCharset('<meta charset="UTF-8">')).toBe("utf-8");
 		expect(extractCharset("<meta charset=iso-8859-1>")).toBe("iso-8859-1");
 		expect(
-			extractCharset(
-				'<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">',
-			),
+			extractCharset('<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">'),
 		).toBe("windows-1252");
 		expect(
-			extractCharset(
-				'<meta content="text/html; charset=Shift_JIS" http-equiv="content-type">',
-			),
+			extractCharset('<meta content="text/html; charset=Shift_JIS" http-equiv="content-type">'),
 		).toBe("shift_jis");
 		expect(extractCharset("<html><head></head></html>")).toBe("utf-8");
 	});
@@ -210,9 +206,7 @@ describe("charset headers", () => {
   Content-Type: text/plain; charset=utf-8
 # END astro-madao
 `);
-		expect(buildMadaoHeadersBlock("md", "ISO-8859-1")).toContain(
-			"charset=iso-8859-1",
-		);
+		expect(buildMadaoHeadersBlock("md", "ISO-8859-1")).toContain("charset=iso-8859-1");
 	});
 
 	it("appends or replaces the madao block when merging", () => {

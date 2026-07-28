@@ -16,8 +16,19 @@ import {
 	mdRelativeToUrlPath,
 	mergeMadaoHeaders,
 } from "./utils.js";
+import {
+	resolveWebmcp,
+	WEBMCP_CLIENT_SCRIPT,
+	WEBMCP_MARKDOWN_TOOL_NAME,
+	type WebmcpOption,
+} from "./webmcp.js";
 
 export { getMarkdownLinkHeader, getMarkdownUrl } from "./utils.js";
+export {
+	resolveWebmcp,
+	WEBMCP_MARKDOWN_TOOL_NAME,
+	type WebmcpOption,
+} from "./webmcp.js";
 
 const turndown = new TurndownService();
 
@@ -33,6 +44,12 @@ export interface MadaoOptions {
 	 * markdown alternate on every HTML response.
 	 */
 	httpHeader?: boolean;
+	/**
+	 * Opt-in WebMCP: register a read-only tool that fetches this page's
+	 * Markdown alternate. Disabled by default. Use `true` or
+	 * `{ enabled: true }`.
+	 */
+	webmcp?: WebmcpOption;
 }
 
 export default function madao(options?: MadaoOptions): AstroIntegration {
@@ -40,11 +57,12 @@ export default function madao(options?: MadaoOptions): AstroIntegration {
 	const folder = opts.folder ?? "md";
 	const cleanFolder = folder.replace(/^\/|\/$/g, "");
 	const httpHeader = opts.httpHeader !== false;
+	const webmcp = resolveWebmcp(opts.webmcp);
 
 	return {
 		name: "madao",
 		hooks: {
-			"astro:config:setup": ({ addMiddleware, updateConfig }) => {
+			"astro:config:setup": ({ addMiddleware, injectScript, logger, updateConfig }) => {
 				addMiddleware({
 					order: "pre",
 					entrypoint: "astro-madao/middleware",
@@ -53,12 +71,14 @@ export default function madao(options?: MadaoOptions): AstroIntegration {
 					vite: {
 						define: {
 							"process.env.ASTRO_MADAO_FOLDER": JSON.stringify(cleanFolder),
-							"process.env.ASTRO_MADAO_HTTP_HEADER": JSON.stringify(
-								httpHeader ? "true" : "false",
-							),
+							"process.env.ASTRO_MADAO_HTTP_HEADER": JSON.stringify(httpHeader ? "true" : "false"),
 						},
 					},
 				});
+				if (webmcp.enabled && webmcp.markdownTool) {
+					injectScript("head-inline", WEBMCP_CLIENT_SCRIPT);
+					logger.info(`Generated WebMCP tool: ${WEBMCP_MARKDOWN_TOOL_NAME}`);
+				}
 			},
 
 			"astro:build:done": async ({ dir, logger }) => {
@@ -166,11 +186,7 @@ export default function madao(options?: MadaoOptions): AstroIntegration {
 						existing = undefined;
 					}
 					const charset = homeCharset ?? firstCharset ?? "utf-8";
-					await writeFile(
-						headersPath,
-						mergeMadaoHeaders(existing, cleanFolder, charset),
-						"utf-8",
-					);
+					await writeFile(headersPath, mergeMadaoHeaders(existing, cleanFolder, charset), "utf-8");
 					logger.info(`Ensured Content-Type charset=${charset} for markdown files`);
 				} catch (error) {
 					logger.error(`Failed to write _headers: ${error}`);

@@ -22,10 +22,12 @@ describe("madao integration", () => {
 	it("registers middleware and exposes the markdown folder to Vite", () => {
 		const integration = madao({ folder: "/ai/" });
 		const addMiddleware = vi.fn();
+		const injectScript = vi.fn();
 		const updateConfig = vi.fn();
 
 		integration.hooks["astro:config:setup"]?.({
 			addMiddleware,
+			injectScript,
 			updateConfig,
 		} as never);
 
@@ -34,6 +36,7 @@ describe("madao integration", () => {
 			order: "pre",
 			entrypoint: "astro-madao/middleware",
 		});
+		expect(injectScript).not.toHaveBeenCalled();
 		expect(updateConfig).toHaveBeenCalledWith({
 			vite: {
 				define: {
@@ -50,6 +53,7 @@ describe("madao integration", () => {
 
 		integration.hooks["astro:config:setup"]?.({
 			addMiddleware: vi.fn(),
+			injectScript: vi.fn(),
 			updateConfig,
 		} as never);
 
@@ -61,6 +65,63 @@ describe("madao integration", () => {
 				},
 			},
 		});
+	});
+
+	it("does not inject WebMCP script by default", () => {
+		const injectScript = vi.fn();
+		madao().hooks["astro:config:setup"]?.({
+			addMiddleware: vi.fn(),
+			injectScript,
+			updateConfig: vi.fn(),
+		} as never);
+		expect(injectScript).not.toHaveBeenCalled();
+	});
+
+	it("injects WebMCP client script when webmcp is enabled", () => {
+		const injectScript = vi.fn();
+		const logger = createLogger();
+		madao({ webmcp: true }).hooks["astro:config:setup"]?.({
+			addMiddleware: vi.fn(),
+			injectScript,
+			logger,
+			updateConfig: vi.fn(),
+		} as never);
+
+		expect(injectScript).toHaveBeenCalledOnce();
+		expect(injectScript).toHaveBeenCalledWith(
+			"head-inline",
+			expect.stringContaining("read_page_markdown"),
+		);
+		const script = injectScript.mock.calls[0]?.[1] as string;
+		expect(script).toContain("registerTool");
+		expect(script).toContain("readOnlyHint");
+		expect(script).toContain('link[rel="alternate"][type="text/markdown"]');
+		expect(script).not.toMatch(/clearTools|setTools|replaceTools|removeTool/);
+		expect(logger.info).toHaveBeenCalledWith("Generated WebMCP tool: read_page_markdown");
+	});
+
+	it("injects WebMCP script for { enabled: true }", () => {
+		const injectScript = vi.fn();
+		madao({ webmcp: { enabled: true } }).hooks["astro:config:setup"]?.({
+			addMiddleware: vi.fn(),
+			injectScript,
+			logger: createLogger(),
+			updateConfig: vi.fn(),
+		} as never);
+		expect(injectScript).toHaveBeenCalledOnce();
+	});
+
+	it("skips WebMCP script when markdownTool is false", () => {
+		const injectScript = vi.fn();
+		const logger = createLogger();
+		madao({ webmcp: { enabled: true, markdownTool: false } }).hooks["astro:config:setup"]?.({
+			addMiddleware: vi.fn(),
+			injectScript,
+			logger,
+			updateConfig: vi.fn(),
+		} as never);
+		expect(injectScript).not.toHaveBeenCalled();
+		expect(logger.info).not.toHaveBeenCalled();
 	});
 
 	it("converts HTML pages to markdown and writes llms files on build done", async () => {

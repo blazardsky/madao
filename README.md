@@ -52,6 +52,7 @@ You don't have to configure Madao, but you may want to personalize some settings
 | `title`        | (your homepage title)       | Sets the site title for the `llms.txt` and `llms-full.txt` files.                                      |
 | `description`  | (your homepage description) | Sets the site description for `llms.txt` and `llms-full.txt`.                                          |
 | `excludePaths` | `[]` (empty list)           | List of URL patterns to exclude from Markdown file generation (e.g., folders you don't want exported). |
+| `webmcp`       | `false`                     | Opt-in WebMCP: `true` or `{ enabled: true }` registers a read-only `read_page_markdown` tool.          |
 
 **Example:**
 
@@ -97,3 +98,4 @@ The CI workflow runs lint, type‑checking and the build on every push.
 ## ROADMAP
 
 - [] Next update: handle i18n better
+- [x] WebMCP (MD reading tool)

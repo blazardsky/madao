@@ -180,8 +180,9 @@ export function extractCharset(html: string): string {
 			continue;
 		}
 
-		const content = tag.match(/\bcontent\s*=\s*["']([^"']*)["']/i)?.[1]
-			?? tag.match(/\bcontent\s*=\s*([^\s>]+)/i)?.[1];
+		const content =
+			tag.match(/\bcontent\s*=\s*["']([^"']*)["']/i)?.[1] ??
+			tag.match(/\bcontent\s*=\s*([^\s>]+)/i)?.[1];
 		const charsetInContent = content?.match(/charset\s*=\s*([a-zA-Z0-9._-]+)/i)?.[1];
 		if (charsetInContent) {
 			return normalizeCharset(charsetInContent);
@@ -266,10 +267,7 @@ export function mergeMadaoHeaders(
 	const current = existing?.replace(/\r\n/g, "\n") ?? "";
 
 	if (current.includes(HEADERS_BEGIN) && current.includes(HEADERS_END)) {
-		return current.replace(
-			new RegExp(`${HEADERS_BEGIN}[\\s\\S]*?${HEADERS_END}\\n?`),
-			block,
-		);
+		return current.replace(new RegExp(`${HEADERS_BEGIN}[\\s\\S]*?${HEADERS_END}\\n?`), block);
 	}
 
 	if (!current.trim()) {

@@ -1,10 +1,5 @@
 import { defineMiddleware } from "astro:middleware";
-import {
-	extractCharset,
-	getMarkdownLinkHeader,
-	getMarkdownUrl,
-	withCharset,
-} from "./utils.js";
+import { extractCharset, getMarkdownLinkHeader, getMarkdownUrl, withCharset } from "./utils.js";
 
 function isHttpHeaderEnabled(): boolean {
 	// Vite `define` injects the string `"true"` / `"false"`; unset defaults to on.
@@ -17,8 +12,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 	const pathname = context.url.pathname;
 	const contentType = response.headers.get("content-type") ?? "";
 
-	const isMarkdown =
-		pathname.endsWith(".md") || contentType.includes("text/markdown");
+	const isMarkdown = pathname.endsWith(".md") || contentType.includes("text/markdown");
 	const isLlms = pathname === "/llms.txt" || pathname === "/llms-full.txt";
 
 	if (isMarkdown || isLlms) {
