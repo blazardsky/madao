@@ -1,5 +1,5 @@
 import { defineMiddleware } from "astro:middleware";
-import { extractCharset, getMarkdownLinkHeader, getMarkdownUrl, withCharset, } from "./utils.js";
+import { extractCharset, getMarkdownLinkHeader, getMarkdownUrl, withCharset } from "./utils.js";
 function isHttpHeaderEnabled() {
     // Vite `define` injects the string `"true"` / `"false"`; unset defaults to on.
     return process.env.ASTRO_MADAO_HTTP_HEADER !== "false";

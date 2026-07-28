@@ -153,8 +153,8 @@ export function extractCharset(html) {
         if (!/\bhttp-equiv\s*=\s*["']?content-type["']?/i.test(tag)) {
             continue;
         }
-        const content = tag.match(/\bcontent\s*=\s*["']([^"']*)["']/i)?.[1]
-            ?? tag.match(/\bcontent\s*=\s*([^\s>]+)/i)?.[1];
+        const content = tag.match(/\bcontent\s*=\s*["']([^"']*)["']/i)?.[1] ??
+            tag.match(/\bcontent\s*=\s*([^\s>]+)/i)?.[1];
         const charsetInContent = content?.match(/charset\s*=\s*([a-zA-Z0-9._-]+)/i)?.[1];
         if (charsetInContent) {
             return normalizeCharset(charsetInContent);
