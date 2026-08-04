@@ -242,6 +242,45 @@ describe("madao integration", () => {
 		expect(headers).toContain("charset=utf-8");
 	});
 
+	it("strips script, style, iframe, and noscript from generated markdown", async () => {
+		const outDir = await mkdtemp(path.join(tmpdir(), "madao-strip-"));
+		await writeFile(
+			path.join(outDir, "index.html"),
+			`<!doctype html>
+<html>
+<head><title>Embed</title></head>
+<body>
+  <main>
+    <h1>Keep me</h1>
+    <p>Visible copy.</p>
+    <script>window.__BOOT__ = {secret: true};</script>
+    <style>.hidden { display: none }</style>
+    <iframe src="https://example.com/player"><script>var leak = 1;</script></iframe>
+    <noscript>Enable JavaScript</noscript>
+  </main>
+</body>
+</html>`,
+		);
+
+		await madao().hooks["astro:build:done"]?.({
+			dir: pathToFileURL(outDir + path.sep),
+			logger: createLogger(),
+		} as never);
+
+		const homeMd = await readFile(path.join(outDir, "md", "index.md"), "utf-8");
+		const llmsFull = await readFile(path.join(outDir, "llms-full.txt"), "utf-8");
+
+		for (const text of [homeMd, llmsFull]) {
+			expect(text).toContain("Keep me");
+			expect(text).toContain("Visible copy.");
+			expect(text).not.toContain("__BOOT__");
+			expect(text).not.toContain("secret");
+			expect(text).not.toContain("var leak");
+			expect(text).not.toContain(".hidden");
+			expect(text).not.toContain("Enable JavaScript");
+		}
+	});
+
 	it("uses the homepage meta charset in _headers", async () => {
 		const outDir = await mkdtemp(path.join(tmpdir(), "madao-charset-"));
 		await writeFile(

@@ -31,6 +31,7 @@ export {
 } from "./webmcp.js";
 
 const turndown = new TurndownService();
+turndown.remove(["script", "style", "iframe", "noscript"]);
 
 export interface MadaoOptions {
 	folder?: string;

@@ -7,6 +7,7 @@ import { resolveWebmcp, WEBMCP_CLIENT_SCRIPT, WEBMCP_MARKDOWN_TOOL_NAME, } from 
 export { getMarkdownLinkHeader, getMarkdownUrl } from "./utils.js";
 export { resolveWebmcp, WEBMCP_MARKDOWN_TOOL_NAME, } from "./webmcp.js";
 const turndown = new TurndownService();
+turndown.remove(["script", "style", "iframe", "noscript"]);
 export default function madao(options) {
     const opts = options ?? {};
     const folder = opts.folder ?? "md";
